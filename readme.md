@@ -61,7 +61,7 @@ PREFERENCES_CURRENCY = Bitcoin
     # This MUST be supplied.
     valuesJson: |
       {
-        "VARIABLE": ${{ toJSON(vars) }}
+        "VARIABLE": ${{ toJSON(vars) }},
         "SECRET": ${{ toJSON(secrets) }}
       }
 ```
