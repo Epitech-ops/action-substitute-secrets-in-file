@@ -1,49 +1,54 @@
 
-const core = require('@actions/core')
+const core = require('@actions/core');
 
-const fs = require("fs")
+const fs = require("fs");
 
-const getFileContents = path => fs.readFileSync(path).toString()
+const getFileContents = path => fs.readFileSync(path).toString();
 
-const escape = string => string.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
+const escape = string => string.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 
-// --
-
-const file = core.getInput("file", { required: true })
-const output = core.getInput("output", { required: false }) || file
-const tokenPattern = core.getInput("tokenPattern", { required: true })
-const secretsJson = core.getInput("secretsJson", { required: true })
-
-console.log("Substituting tokens matching", tokenPattern, "from file", file, "into output", output)
-
-const fileContents = getFileContents(file)
-
-const secrets = JSON.parse(secretsJson)
-
-const regexPattern = new RegExp(escape(tokenPattern).replace(/TOKEN/, "(.*?)"), "gm")
-
-const matches = [...fileContents.matchAll(regexPattern)]
+function replaceStrings(content, pattern, token, values) {
+  console.log('************');
+  console.log("Substituting tokens matching", pattern);
+  const regexPattern = new RegExp(escape(pattern).replace(token, "(.*)"), "gm");
+  const matches = [...content.matchAll(regexPattern)]
     .map(m => ({
         target: m[0],
         token: m[1]
     }))
     .reduce((acc, next) =>
         acc.find(a => a.target === next.target) ? acc : [...acc, next],
-        [])
-
-console.log("Found", matches.length, "tokens", matches.map(m => m.token).join(", "))
-
-const missing = matches.filter(m => secrets[m.token] === undefined).map(m => m.target)
-
-if (missing.length)
-    console.warn("Missing secrets", missing.length, missing.join(", "))
-
-const replaced = matches
-    .filter(m => secrets[m.token] !== undefined)
+        []);
+  console.log("Found", matches.length, "matching patterns: ", matches.map(m => m.token).join(", "));
+  const missing = matches.filter(m => values[token][m.token] === undefined).map(m => m.target);
+  if (missing.length)
+    console.warn("Missing", missing.length, "replacements for: ", missing.join(", "));
+  const ok = matches.filter(m => values[token][m.token] !== undefined).map(m => m.target);
+  console.log("Replacing", ok.length, "patterns: ", ok.join(", "));
+  const result = matches
+    .filter(m => values[token][m.token] !== undefined)
     .reduce((acc, next) =>
-        acc.replace(new RegExp(escape(next.target), "gm"), secrets[next.token]),
-        fileContents)
+        acc.replace(new RegExp(escape(next.target), "gm"), values[token][next.token]),
+        fileContents);
+  return result;
+}
 
-fs.writeFileSync(output, replaced)
+const file = core.getInput("file", { required: true });
+const output = core.getInput("output", { required: false }) || file;
+const tokenPatterns = core.getInput("tokenPatterns", { required: true });
+const valuesJson = core.getInput("valuesJson", { required: true });
 
-console.log("Finished substituting")
+let fileContents = getFileContents(file);
+
+const values = JSON.parse(valuesJson);
+
+for (const [token, pattern] of Object.entries(JSON.parse(tokenPatterns))) {
+  fileContents = replaceStrings(fileContents, pattern, token, values);
+}
+
+console.log('************');
+console.log("Writing content to file", output);
+fs.writeFileSync(output, fileContents);
+
+console.log('************');
+console.log("Finished substituting");

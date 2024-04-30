@@ -1,5 +1,5 @@
-name: Substitute Secrets into Tokenised File
-description: Substitute GitHub Secrets into a File, matching on a specified Token format.
+name: Substitute values into Tokenised File
+description: Substitute GitHub values into a File, matching on specified Token formats.
 author: Skylark @ Lambdaspire
 inputs:
   file:
@@ -8,14 +8,14 @@ inputs:
   output:
     required: false
     description: An optional alternative output file.
-  tokenPattern:
+  tokenPatterns:
     required: true
-    description: A pattern to match tokens. Must contain the word TOKEN. e.g. '#{TOKEN}#', '${TOKEN}', '<<<TOKEN>>>'...
-  secretsJson:
+    description: JSON representation of the patterns.
+  valuesJson:
     required: true
-    description: JSON representation of the secrets.
+    description: JSON representation of the valuesJson.
 runs:
-  using: node16
+  using: node20
   main: dist/index.js
 branding:
   icon: dollar-sign
