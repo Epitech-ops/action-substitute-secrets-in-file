@@ -37,6 +37,7 @@ const file = core.getInput("file", { required: true });
 const output = core.getInput("output", { required: false }) || file;
 const tokenPatterns = core.getInput("tokenPatterns", { required: true });
 const valuesJson = core.getInput("valuesJson", { required: true });
+const valuesDefault = core.getInput("valuesDefault", { required: false }) || null;
 
 let fileContents = getFileContents(file);
 
@@ -44,6 +45,13 @@ const values = JSON.parse(valuesJson);
 
 for (const [token, pattern] of Object.entries(JSON.parse(tokenPatterns))) {
   fileContents = replaceStrings(fileContents, pattern, token, values);
+}
+
+if (valuesDefault !== null) {
+  const defaultValues = JSON.parse(valuesDefault);
+  for (const [token, pattern] of Object.entries(JSON.parse(tokenPatterns))) {
+    fileContents = replaceStrings(fileContents, pattern, token, defaultValues);
+  }
 }
 
 console.log('************');

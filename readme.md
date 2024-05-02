@@ -57,9 +57,17 @@ PREFERENCES_CURRENCY = Bitcoin
         "SECRET": "#[SECRET]"
       }
 
-    # Passes GitHub Secrets as a JSON string to the action.
+    # Passes GitHub Variables and Secrets as a JSON string to the action.
     # This MUST be supplied.
     valuesJson: |
+      {
+        "VARIABLE": ${{ toJSON(vars) }},
+        "SECRET": ${{ toJSON(secrets) }}
+      }
+
+    # Passes GitHub Variables and Secrets as a JSON string to the action.
+    # Optional - this may be used in cases like reusable workflows and deployment environments
+    valuesDefault: |
       {
         "VARIABLE": ${{ toJSON(vars) }},
         "SECRET": ${{ toJSON(secrets) }}

@@ -14,6 +14,9 @@ inputs:
   valuesJson:
     required: true
     description: JSON representation of the valuesJson.
+  valuesDefault:
+    required: false
+    description: JSON representation of the valuesDefault. Use this if you want to provide variables and secrets from the environment.
 runs:
   using: node20
   main: dist/index.js
